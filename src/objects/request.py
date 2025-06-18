@@ -13,7 +13,7 @@ def api_field(api_key: Optional[str] = None, default: Optional[Any] = None, **kw
         return field(default=default, metadata=metadata, **kwargs)
 
 
-class Request:
+class RequestData:
     @property
     def as_dict(self) -> dict:
         result = {}

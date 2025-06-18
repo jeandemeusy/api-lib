@@ -1,11 +1,12 @@
 import asyncio
 import logging
-from typing import Callable, Optional, Union
+from typing import Optional, Union
 
 import aiohttp
 
+from .header import BearerToken
 from .http_method import HTTPMethod
-from .objects import Request, Response
+from .objects import RequestData, Response
 
 logger = logging.getLogger("api-lib")
 
@@ -13,14 +14,14 @@ logger = logging.getLogger("api-lib")
 class ApiLib:
     def __init__(self, url: str, token: str, prefix: Optional[str] = None):
         self.host = url
-        self.headers = {"Authorization": f"Bearer {token}"}
+        self.token = BearerToken(token)
         self.prefix = "" if prefix is None else prefix
 
     async def __call(
         self,
         method: HTTPMethod,
         endpoint: str,
-        data: Optional[Request] = None,
+        data: Optional[RequestData] = None,
         use_api_prefix: bool = True,
     ):
         logger.debug(
@@ -35,7 +36,7 @@ class ApiLib:
 
         try:
             headers = {"Content-Type": "application/json"}
-            async with aiohttp.ClientSession(headers=self.headers) as s:
+            async with aiohttp.ClientSession(headers=self.token.header) as s:
                 async with getattr(s, method.value)(
                     url=f"{self.host}{self.prefix if use_api_prefix else '/'}{endpoint}",
                     json={} if data is None else data.as_dict,
@@ -75,7 +76,7 @@ class ApiLib:
         self,
         method: HTTPMethod,
         endpoint: str,
-        data: Optional[Request] = None,
+        data: Optional[RequestData] = None,
         timeout: int = 90,
         use_api_prefix: bool = True,
     ) -> tuple[bool, Optional[object]]:
@@ -116,12 +117,12 @@ class ApiLib:
             else:
                 return result
 
-    async def request(
+    async def req(
         self,
         method: HTTPMethod,
         path: str,
-        data: Optional[Request] = None,
-        resp_type: Optional[Callable] = None,
+        resp_type: Optional[Response] = None,
+        data: Optional[RequestData] = None,
         use_api_prefix: bool = True,
         return_state: bool = False,
         timeout: int = 90,
@@ -139,7 +140,39 @@ class ApiLib:
         if resp_type is None:
             return r
 
-        return resp_type(r)
+        return resp_type(r)  # ty: ignore[call-non-callable]
+
+    async def safe_req(
+        self,
+        method: HTTPMethod,
+        path: str,
+        resp_type: Optional[Response] = None,
+        data: Optional[RequestData] = None,
+        use_api_prefix: bool = True,
+        return_state: bool = False,
+        timeout: int = 90,
+    ) -> Union[Response, dict]:
+        resp = await self.req(
+            method,
+            path,
+            data,
+            resp_type,
+            use_api_prefix,
+            return_state,
+            timeout,
+        )
+
+        if resp is None:
+            logger.error(
+                "API request failed",
+                {
+                    "method": method.value,
+                    "path": path,
+                    "data": getattr(data, "as_dict", {}),
+                },
+            )
+            raise RuntimeError("API request failed")
+        return resp
 
     async def timeout_check_success(self, path: str, timeout: int = 20):
         try:
@@ -154,7 +187,7 @@ class ApiLib:
     async def __check_url(self, path: str, use_api_prefix: bool = False):
         while True:
             try:
-                return await self.request(
+                return await self.req(
                     HTTPMethod.GET,
                     path,
                     use_api_prefix=use_api_prefix,
