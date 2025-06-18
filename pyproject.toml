@@ -1,0 +1,47 @@
+[project]
+name = "api-lib"
+version = "0.0.1"
+requires-python = ">=3.12"
+dependencies = ["src"]
+
+[tool.uv.sources]
+src = { workspace = true }
+test = { workspace = true }
+
+[tool.uv.workspace]
+members = [
+    "src",
+    "test" 
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.11.4",
+    "test",
+    "pytest-cov>=6.2.1",
+]
+lint = [
+    "black==25.1.0",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py312']
+include = '\.pyi?$'
+
+[tool.ruff]
+line-length = 100
+lint.select = ["E", "F"]
+lint.ignore = []
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+minversion = "7.0"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+addopts = ["-ra", "-q"]
+
+log_cli = true
+log_cli_level = "CRITICAL"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
