@@ -24,6 +24,7 @@ logs/
 
 #misc
 .coverage*
+coverage.json
 htmlcov/
 foo*.*
 foo*/
