@@ -34,9 +34,7 @@ class Response:
         return str(self)
 
     def __eq__(self, other):
-        return all(
-            getattr(self, key) == getattr(other, key) for key in [f.name for f in fields(self)]
-        )
+        return all(getattr(self, key) == getattr(other, key) for key in [f.name for f in fields(self)])
 
 
 class JsonResponse(Response):
@@ -71,7 +69,7 @@ class MetricResponse(Response):
             for line in data.split("\n"):
                 if not line.strip().startswith(f.name):
                     continue
-                
+
                 value = line.split(" ")[-1]
 
                 if len(labels) == 0:

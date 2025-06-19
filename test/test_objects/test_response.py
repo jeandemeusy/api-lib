@@ -89,4 +89,3 @@ def test_metric_response():
     assert response.metric_two["label_1"] == Decimal("42.42")
     assert response.metric_two["label_2"] == Decimal("24.24")
     assert response.metric_three == 600
-    

@@ -13,17 +13,11 @@ def test_request_data_as_dict(request_object: RequestClass):
 
 
 def test_request_data_as_header_string(request_object: RequestClass):
-    assert (
-        request_object.as_header_string
-        == "field=test_value&other_key=path_value&default_field=default_value"
-    )
+    assert request_object.as_header_string == "field=test_value&other_key=path_value&default_field=default_value"
 
 
 def test_request_data_as_query_parameters(request_object: RequestClass):
-    assert (
-        request_object.as_query_parameters
-        == "?field=test_value&other_key=path_value&default_field=default_value"
-    )
+    assert request_object.as_query_parameters == "?field=test_value&other_key=path_value&default_field=default_value"
 
 
 def test_request_data_as_array(request_object: RequestClass):

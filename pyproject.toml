@@ -1,7 +1,7 @@
 [project]
 name = "api-lib"
 version = "0.0.1"
-requires-python = ">=3.12"
+requires-python = "==3.13.*"
 dependencies = ["src"]
 
 [tool.uv.sources]
@@ -25,12 +25,12 @@ lint = [
 ]
 
 [tool.black]
-line-length = 100
-target-version = ['py312']
+line-length = 120
+target-version = ['py313']
 include = '\.pyi?$'
 
 [tool.ruff]
-line-length = 100
+line-length = 120
 lint.select = ["E", "F"]
 lint.ignore = []
 
