@@ -2,7 +2,7 @@ from test.lib import EnvVarContext
 
 import pytest
 
-from src.headers.header import Header
+from api_lib.headers.header import Header
 
 
 def test_header_from_value():

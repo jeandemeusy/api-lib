@@ -1,9 +1,9 @@
 from typing import Optional
 
-from src.api_lib import ApiLib
-from src.headers import Header
-from src.headers.accept import AcceptGithub
-from src.method import Method
+from api_lib.api_lib import ApiLib
+from api_lib.headers import Header
+from api_lib.headers.accept import AcceptGithub
+from api_lib.method import Method
 
 from .response import Repository, User
 

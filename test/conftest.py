@@ -1,7 +1,7 @@
 import pytest
 from dotenv import load_dotenv
 
-from src.headers.authorization import Bearer
+from api_lib.headers.authorization import Bearer
 
 from .config.github_api import GithubAPI
 from .config.request import RequestClass

@@ -3,7 +3,7 @@ from test.config.response import MetricResponseClass, ResponseClass
 
 import pytest
 
-from src.objects.response import APIfield, APIobject, JsonResponse
+from api_lib.objects.response import APIfield, APIobject, JsonResponse
 
 
 def test_api_field():

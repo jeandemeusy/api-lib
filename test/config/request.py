@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from src.objects.request import APIfield, RequestData
+from api_lib.objects.request import APIfield, RequestData
 
 
 @dataclass

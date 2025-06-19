@@ -1,4 +1,4 @@
-from src.headers.accept import Accept
+from api_lib.headers.accept import Accept
 
 
 def test_custom_accept_header():
