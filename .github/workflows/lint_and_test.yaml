@@ -35,6 +35,6 @@ jobs:
           make fmt
 
       - name: Test with pytest
-        working-directory: ct-app
+        working-directory: .
         run: |
           make test
