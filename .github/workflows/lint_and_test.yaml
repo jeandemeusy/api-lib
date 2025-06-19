@@ -2,9 +2,9 @@ name: Main
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, closed]
 
 concurrency:
   # find the branch name for 'pull_request' or on 'push' events
@@ -36,5 +36,5 @@ jobs:
         run: make test
 
       - name: Update Coverage Badge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: we-cli/coverage-badge-action@main
-        
