@@ -1,5 +1,8 @@
 name: Format and tests
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [master]
