@@ -29,5 +29,4 @@ htmlcov/
 foo*.*
 foo*/
 run_*.sh
-
 .DS_Store
