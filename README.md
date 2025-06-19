@@ -1,4 +1,4 @@
-# api-lib
+# api-lib [![cov](https://github.com/jeandemeusy/api-lib/blob/gh-pages-debug/badges/coverage.svg)](https://github.com/<you>/<repo>/actions)
 
 A lightweight Python library for building and consuming APIs with ease.
 
