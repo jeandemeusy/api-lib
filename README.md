@@ -1,4 +1,4 @@
-# api-lib [![cov](https://github.com/jeandemeusy/api-lib/blob/gh-pages/badges/coverage.svg)](https://github.com/jeandemeusy/api-lib/actions)
+# api-lib  [![Format and tests](https://github.com/jeandemeusy/api-lib/actions/workflows/lint_and_test.yaml/badge.svg?branch=master)](https://github.com/jeandemeusy/api-lib/actions/workflows/lint_and_test.yaml) [![cov](https://github.com/jeandemeusy/api-lib/blob/gh-pages/badges/coverage.svg)](https://github.com/jeandemeusy/api-lib/actions)
 
 A lightweight Python library for building and consuming APIs with ease.
 
