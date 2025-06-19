@@ -1,6 +1,10 @@
-from dataclasses import field
-
-from src.objects.response import APIfield, APIobject, JsonResponse, MetricResponse
+from src.objects.response import (
+    APIfield,
+    APImetric,
+    APIobject,
+    JsonResponse,
+    MetricResponse,
+)
 
 
 @APIobject
@@ -26,6 +30,7 @@ class ResponseClass(JsonResponse):
 
 @APIobject
 class MetricResponseClass(MetricResponse):
-    metric_one: float = field()
-    metric_two: dict = field(metadata={"labels": ["label_name"]})
-    metric_three: int = field()
+    metric_one: float = APImetric()
+    metric_two: dict = APImetric(["label_name"])
+    metric_three: int = APImetric()
+    metric_four: dict = APImetric(["label_name", "other_label_name"])

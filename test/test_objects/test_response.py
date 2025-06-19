@@ -82,6 +82,7 @@ def test_metric_response():
     metric_not_useful 1
 
     # Rest of the metrics
+    metric_four{label_name="label_1", other_label_name="other_label_1"} 50
     """
     )
 
@@ -89,3 +90,32 @@ def test_metric_response():
     assert response.metric_two["label_1"] == Decimal("42.42")
     assert response.metric_two["label_2"] == Decimal("24.24")
     assert response.metric_three == 600
+
+
+def test_metric_response_multiple_labels_sum():
+    response = MetricResponseClass(
+        """
+    # MetricResponseClass Test
+    metric_two{label_name="label_1", other_label_name="other_label_1"} 42.42
+    metric_two{label_name="label_1", other_label_name="other_label_2"} 10.10
+    metric_two{label_name="label_2"} 24.24
+    """
+    )
+
+    assert response.metric_two["label_1"] == Decimal("52.52")
+    assert response.metric_two["label_2"] == Decimal("24.24")
+
+
+def test_metric_response_multiple_labels_distinct():
+    response = MetricResponseClass(
+        """
+    # MetricResponseClass Test
+    metric_four{label_name="label_1",other_label_name="other_label_1"} 42.42
+    metric_four{label_name="label_1",other_label_name="other_label_2"} 10.10
+    metric_four{label_name="label_2"} 24.24
+    """
+    )
+
+    assert response.metric_four["label_1"]["other_label_1"] == Decimal("42.42")
+    assert response.metric_four["label_1"]["other_label_2"] == Decimal("10.10")
+    assert response.metric_four["label_2"] == Decimal("24.24")

@@ -189,9 +189,7 @@ class ApiLib:
     async def timeout_check_success(self, path: str, timeout: int = 20):
         try:
             is_ok = await asyncio.wait_for(self.__check_url(path), timeout=timeout)
-        except asyncio.TimeoutError:
-            return False
-        except Exception:
+        except (asyncio.TimeoutError, Exception):
             return False
         else:
             return is_ok

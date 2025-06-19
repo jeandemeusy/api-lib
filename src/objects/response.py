@@ -15,6 +15,14 @@ def APIfield(path: Optional[str] = None, default: Optional[object] = None):
     return field(metadata=metadata)
 
 
+def APImetric(labels: Optional[list[str]] = None):
+    metadata: dict[str, Any] = dict()
+    if labels:
+        metadata["labels"] = labels
+
+    return field(metadata=metadata)
+
+
 class Response:
     def post_init(self):
         pass
@@ -76,11 +84,10 @@ class MetricResponse(Response):
                     setattr(self, f.name, f.type(value) + getattr(self, f.name, 0))  # ty: ignore[call-non-callable]
                 else:
                     labels_values = {
-                        pair.split("=")[0].strip('"'): pair.split("=")[1].strip('"')
+                        pair.split("=")[0].strip('"').strip(): pair.split("=")[1].strip('"').strip()
                         for pair in line.split("{")[1].split("}")[0].split(",")
                     }
-
-                    dict_path = [labels_values[label] for label in labels]
+                    dict_path = [labels_values[label] for label in labels if label in labels_values]
                     current = values
 
                     for part in dict_path[:-1]:
