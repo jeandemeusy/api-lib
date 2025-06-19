@@ -10,8 +10,10 @@ A lightweight Python library for building and consuming APIs with ease.
 
 ## Installation
 
+It's recommended to use `uv` to install the package:
+
 ```bash
-pip install api-lib
+uv add api-lib
 ```
 
 ## Usage
