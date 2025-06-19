@@ -1,5 +1,18 @@
-from dataclasses import fields
+from dataclasses import dataclass, field, fields
 from decimal import Decimal
+from typing import Any, Optional
+
+APIobject = dataclass(init=False)
+
+
+def APIfield(path: Optional[str] = None, default: Optional[object] = None):
+    metadata: dict[str, Any] = dict()
+    if path:
+        metadata["path"] = path
+    if default:
+        metadata["default"] = default
+
+    return field(metadata=metadata)
 
 
 class Response:
@@ -29,33 +42,40 @@ class Response:
 class JsonResponse(Response):
     def __init__(self, data: dict):
         for f in fields(self):
-            path = f.metadata.get("path", f.name)
             v = data
-            for subkey in path.split("/"):
+            for subkey in f.metadata.get("path", f.name).split("/"):
                 v = v.get(subkey, None)
                 if v is None:
                     break
-
-            setattr(self, f.name, f.type(v))  # ty: ignore[call-non-callable]
+            if v is None:
+                if default := f.metadata.get("default", None):
+                    if not isinstance(default, f.type):
+                        raise TypeError(
+                            f"Default value for {f.name} must be of type {f.type.__name__}, "  # ty: ignore[possibly-unbound-attribute]
+                            f"got {type(default).__name__}"
+                        )
+                    setattr(self, f.name, default)
+                else:
+                    setattr(self, f.name, None)
+            else:
+                setattr(self, f.name, f.type(v))  # ty: ignore[call-non-callable]
         self.post_init()
 
 
 class MetricResponse(Response):
     def __init__(self, data: str):
-        self.data = data.split("\n")
-
         for f in fields(self):
             values = {}
             labels = f.metadata.get("labels", [])
 
-            for line in self.data:
-                if not line.startswith(f.name):
+            for line in data.split("\n"):
+                if not line.strip().startswith(f.name):
                     continue
-
+                
                 value = line.split(" ")[-1]
 
                 if len(labels) == 0:
-                    setattr(self, f.name, f.type(value))  # ty: ignore[call-non-callable]
+                    setattr(self, f.name, f.type(value) + getattr(self, f.name, 0))  # ty: ignore[call-non-callable]
                 else:
                     labels_values = {
                         pair.split("=")[0].strip('"'): pair.split("=")[1].strip('"')

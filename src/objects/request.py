@@ -2,7 +2,7 @@ from dataclasses import field, fields
 from typing import Any, Optional
 
 
-def api_field(api_key: Optional[str] = None, default: Optional[Any] = None, **kwargs):
+def APIfield(api_key: Optional[str] = None, default: Optional[Any] = None, **kwargs):
     metadata = kwargs.pop("metadata", {})
     if api_key is not None:
         metadata["api_key"] = api_key
@@ -27,5 +27,9 @@ class RequestData:
         return "&".join([f"{k}={str(v).lower()}" for k, v in self.as_dict.items()])
 
     @property
+    def as_query_parameters(self) -> str:
+        return "?" + "&".join([f"{k}={v}" for k, v in self.as_dict.items() if v is not None])
+
+    @property
     def as_array(self) -> list:
-        return [f.metadata["api_key"] for f in fields(self) if getattr(self, f.name)]
+        return [f.metadata.get("api_key", f.name) for f in fields(self) if getattr(self, f.name)]

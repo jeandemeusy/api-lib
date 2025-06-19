@@ -1,5 +1,20 @@
-from .hoprd_api import HoprdApi
+import pytest
+
+from .config.github_api import GithubAPI
 
 
-def test_api_lib():
-    _ = HoprdApi("http://localhost:8080", "test_token")
+@pytest.mark.asyncio
+async def test_simple_api(gh_api: GithubAPI):
+    user = await gh_api.user()
+
+    assert user.login != ""
+    assert user.name != ""
+    assert user.disk_usage >= 0
+    assert user.disk_space_limit > 0
+
+
+@pytest.mark.asyncio
+async def test_api_returns_list(gh_api: GithubAPI):
+    repos = await gh_api.repositories("astral-sh")
+    assert isinstance(repos, list)
+    assert len(repos) > 0
