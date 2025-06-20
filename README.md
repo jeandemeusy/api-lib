@@ -25,8 +25,16 @@ from api_lib import ApiLib
 from api_lib.headers.accept import AcceptGithub
 from api_lib.headers.authorization import Bearer
 from api_lib.method import Method
+from api_lib.objects.response import APIfield, APIobject, JsonResponse
 
-from .response import Repository, User
+
+@APIobject
+class User(JsonResponse):
+    login: str = APIfield()
+    name: str = APIfield()
+    disk_usage: int = APIfield()
+    disk_space_limit: int = APIfield("plan/space")
+
 
 class GithubAPI(ApiLib):
     headers = [AcceptGithub()]
