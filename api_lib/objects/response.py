@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field, fields
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Any, Iterable, Optional, get_args, get_origin
 
 APIobject = dataclass(init=False)
 
@@ -48,6 +48,10 @@ class Response:
 class JsonResponse(Response):
     def __init__(self, data: dict):
         for f in fields(self):
+            origin: Optional[Any] = get_origin(f.type)
+            args = get_args(f.type)
+            arg = args[0] if args else f.type
+
             v = data
             for subkey in f.metadata.get("path", f.name).split("/"):
                 v = v.get(subkey, None)
@@ -55,22 +59,28 @@ class JsonResponse(Response):
                     break
             if v is None:
                 if default := f.metadata.get("default", None):
-                    if not isinstance(default, f.type):
+                    if not isinstance(default, arg):
                         raise TypeError(
-                            f"Default value for {f.name} must be of type {f.type.__name__}, "  # ty: ignore[possibly-unbound-attribute]
+                            f"Default value for {f.name} must be of type {arg.__name__}, "  # ty: ignore[possibly-unbound-attribute]
                             f"got {type(default).__name__}"
                         )
                     setattr(self, f.name, default)
                 else:
                     setattr(self, f.name, None)
             else:
-                setattr(self, f.name, f.type(v))  # ty: ignore[call-non-callable]
+                if origin and issubclass(origin, Iterable) and arg:
+                    setattr(self, f.name, [arg(obj) for obj in v])
+                else:
+                    setattr(self, f.name, arg(v))  # ty: ignore[call-non-callable]
         self.post_init()
 
 
 class MetricResponse(Response):
     def __init__(self, data: str):
         for f in fields(self):
+            args = get_args(f.type)
+            arg = args[0] if args else f.type
+
             values = {}
             labels = f.metadata.get("labels", [])
 
@@ -81,7 +91,7 @@ class MetricResponse(Response):
                 value = line.split(" ")[-1]
 
                 if len(labels) == 0:
-                    setattr(self, f.name, f.type(value) + getattr(self, f.name, 0))  # ty: ignore[call-non-callable]
+                    setattr(self, f.name, arg(value) + getattr(self, f.name, 0))  # ty: ignore[call-non-callable]
                 else:
                     labels_values = {
                         pair.split("=")[0].strip('"').strip(): pair.split("=")[1].strip('"').strip()
@@ -99,4 +109,4 @@ class MetricResponse(Response):
                     current[dict_path[-1]] += Decimal(value)
 
             if len(labels) > 0:
-                setattr(self, f.name, f.type(values))  # ty: ignore[call-non-callable]
+                setattr(self, f.name, arg(values))  # ty: ignore[call-non-callable]
