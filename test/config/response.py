@@ -29,6 +29,22 @@ class ResponseClass(JsonResponse):
 
 
 @APIobject
+class ResponseWithList(JsonResponse):
+    this_list: list[User] = APIfield()
+
+
+@APIobject
+class UserWithObject(JsonResponse):
+    user: User = APIfield()
+    repository: Repository = APIfield()
+
+
+@APIobject
+class ResponseWithNestedObjects(JsonResponse):
+    that_list: list[UserWithObject] = APIfield()
+
+
+@APIobject
 class MetricResponseClass(MetricResponse):
     metric_one: float = APImetric()
     metric_two: dict = APImetric(["label_name"])

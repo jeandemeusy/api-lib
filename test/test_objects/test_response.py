@@ -1,5 +1,13 @@
 from decimal import Decimal
-from test.config.response import MetricResponseClass, ResponseClass
+from test.config.response import (
+    MetricResponseClass,
+    Repository,
+    ResponseClass,
+    ResponseWithList,
+    ResponseWithNestedObjects,
+    User,
+    UserWithObject,
+)
 
 import pytest
 
@@ -119,3 +127,41 @@ def test_metric_response_multiple_labels_distinct():
     assert response.metric_four["label_1"]["other_label_1"] == Decimal("42.42")
     assert response.metric_four["label_1"]["other_label_2"] == Decimal("10.10")
     assert response.metric_four["label_2"] == Decimal("24.24")
+
+
+def test_metric_response_with_list():
+    response = ResponseWithList(
+        {
+            "this_list": [
+                {"login": "user1", "name": "User One", "disk_usage": 100, "plan": {"space": 200}},
+                {"login": "user2", "name": "User Two", "disk_usage": 150, "plan": {"space": 300}},
+            ],
+        }
+    )
+
+    assert len(response.this_list) == 2
+    assert isinstance(response.this_list[0], User)
+    assert response.this_list[0].login == "user1"
+
+
+def test_metric_response_nested_objects():
+    response = ResponseWithNestedObjects(
+        {
+            "that_list": [
+                {
+                    "user": {"login": "user1", "name": "User One", "disk_usage": 100, "plan": {"space": 200}},
+                    "repository": {"name": "repo1", "full_name": "repo1/full_name"},
+                },
+                {
+                    "user": {"login": "user2", "name": "User Two", "disk_usage": 150, "plan": {"space": 300}},
+                    "repository": {"name": "repo2", "full_name": "repo2/full_name"},
+                },
+            ]
+        }
+    )
+    assert len(response.that_list) == 2
+
+    for item in response.that_list:
+        assert isinstance(item, UserWithObject)
+        assert isinstance(item.user, User)
+        assert isinstance(item.repository, Repository)
