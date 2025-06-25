@@ -195,9 +195,10 @@ class ApiLib:
             return is_ok
 
     async def __check_url(self, path: str, use_api_prefix: bool = False):
-        while True:
+        is_ok = False
+        while not is_ok:
             try:
-                return await self.req(
+                is_ok = await self.req(
                     Method.GET,
                     path,
                     use_api_prefix=use_api_prefix,
@@ -206,3 +207,6 @@ class ApiLib:
                 )
             except Exception:
                 await asyncio.sleep(0.25)
+            else:
+                if is_ok:
+                    return is_ok

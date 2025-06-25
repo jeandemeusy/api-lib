@@ -41,9 +41,6 @@ class Response:
     def __repr__(self):
         return str(self)
 
-    def __eq__(self, other):
-        return all(getattr(self, key) == getattr(other, key) for key in [f.name for f in fields(self)])
-
 
 class JsonResponse(Response):
     def __init__(self, data: dict):
