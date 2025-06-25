@@ -6,4 +6,4 @@ fmt:
 
 .PHONY: test
 test:
-	@uv run pytest --cov=api_lib --cov-report json
+	@uv run pytest --cov=api_lib --cov-report json --cov-report term
