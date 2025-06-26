@@ -2,7 +2,10 @@
 name = "api-lib"
 dynamic = ["version"]
 requires-python = "==3.13.*"
-dependencies = ["aiohttp>=3.12.13"]
+dependencies = [
+    "aiohttp>=3.12.13",
+    "flask>=3.1.1",
+]
 readme = {file = "README.md", content-type = "text/markdown" }
 authors = [{name = "Jean Demeusy", email = "jean.demeusy@hoprnet.org"}]
 maintainers = [{name = "Jean Demeusy", email = "jean.demeusy@hoprnet.org"}]
