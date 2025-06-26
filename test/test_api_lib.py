@@ -58,6 +58,7 @@ async def test_no_return_type(api: ApiLib):
     assert isinstance(result, dict)
 
 
+@pytest.mark.asyncio
 async def test_timeout_check_success(api: ApiLib):
     result = await api.timeout_check_success("/always_fail", timeout=2)
     assert result is False
