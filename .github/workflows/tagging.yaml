@@ -20,7 +20,7 @@ jobs:
       - name: Checkout main branch
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 0  # Ensure full history for tags
 
       - name: Fetch all tags
@@ -29,7 +29,11 @@ jobs:
       - name: Get latest tag
         id: get_latest_tag
         run: |
-          latest_tag=$(git tag --sort=-v:refname | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
+          latest_tag=$(git tag --sort=-v:refname | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+          if [ -z "$latest_tag" ]; then
+            echo "No valid tag found, using fallback v0.0.0"
+            latest_tag="v0.0.0"
+          fi
           echo "Latest tag found: $latest_tag"
           echo "tag=${latest_tag}" >> $GITHUB_OUTPUT
 
