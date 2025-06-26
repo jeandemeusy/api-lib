@@ -75,6 +75,9 @@ jobs:
   publish:
     name: Build, publish, sign, and release
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/api-lib
     needs: tag
     permissions:
       contents: write
