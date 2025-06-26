@@ -106,7 +106,6 @@ jobs:
           path: dist/
 
       - name: Publish Python distribution to PyPI
-        if: startsWith(github.ref, 'refs/tags/')
         uses: pypa/gh-action-pypi-publish@release/v1
 
       - name: Download all the dists (for signing)
