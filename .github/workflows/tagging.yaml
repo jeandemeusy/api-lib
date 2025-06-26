@@ -29,10 +29,10 @@ jobs:
       - name: Get latest tag
         id: get_latest_tag
         run: |
-          latest_tag=$(git tag --sort=-v:refname | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+          latest_tag=$(git tag --sort=-v:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
           if [ -z "$latest_tag" ]; then
-            echo "No valid tag found, using fallback v0.0.0"
-            latest_tag="v0.0.0"
+            echo "No valid tag found, using fallback 0.0.0"
+            latest_tag="0.0.0"
           fi
           echo "Latest tag found: $latest_tag"
           echo "tag=${latest_tag}" >> $GITHUB_OUTPUT
@@ -42,7 +42,6 @@ jobs:
         run: |
           # Remove leading 'v' if present
           current_version="${{ steps.get_latest_tag.outputs.tag }}"
-          current_version="${current_version#v}"
 
           IFS='.' read -r major minor patch <<< "$current_version"
 
