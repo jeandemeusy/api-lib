@@ -77,6 +77,4 @@ jobs:
         uses: peter-evans/workflow-dispatch@v1
         with:
           workflow: publish.yaml
-          ref: ${{ github.ref }}
-          inputs:
-            tag: ${{ steps.bump_version.outputs.new_version }}
+          ref: refs/tags/${{ steps.bump_version.outputs.new_version }}

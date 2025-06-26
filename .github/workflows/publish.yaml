@@ -2,10 +2,6 @@ name: Publish Python distribution to PyPI
 
 on:
   workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Tag to publish'
-        required: true
 
 jobs:
   build:
