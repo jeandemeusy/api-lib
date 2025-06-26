@@ -1,0 +1,70 @@
+name: Tag Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version type (major, minor, patch)'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0  # Ensure full history for tags
+
+      - name: Fetch all tags
+        run: git fetch --tags
+
+      - name: Get latest tag
+        id: get_latest_tag
+        run: |
+          latest_tag=$(git tag --sort=-v:refname | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
+          echo "Latest tag found: $latest_tag"
+          echo "tag=${latest_tag}" >> $GITHUB_OUTPUT
+
+      - name: Calculate next version
+        id: bump_version
+        run: |
+          # Remove leading 'v' if present
+          current_version="${{ steps.get_latest_tag.outputs.tag }}"
+          current_version="${current_version#v}"
+
+          IFS='.' read -r major minor patch <<< "$current_version"
+
+          case "${{ github.event.inputs.version_type }}" in
+            major)
+              ((major+=1))
+              minor=0
+              patch=0
+              ;;
+            minor)
+              ((minor+=1))
+              patch=0
+              ;;
+            patch)
+              ((patch+=1))
+              ;;
+          esac
+
+          new_version="v$major.$minor.$patch"
+          echo "Bumped version: $new_version"
+          echo "new_version=$new_version" >> $GITHUB_OUTPUT
+
+      # - name: Create Git tag
+      #   run: |
+      #     git config user.name "github-actions"
+      #     git config user.email "github-actions@users.noreply.github.com"
+
+      #     git tag "${{ steps.bump_version.outputs.new_version }}"
+      #     git push origin "${{ steps.bump_version.outputs.new_version }}"
