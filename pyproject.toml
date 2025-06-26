@@ -2,7 +2,9 @@
 name = "api-lib"
 dynamic = ["version"]
 requires-python = "==3.13.*"
-dependencies = ["aiohttp>=3.12.13"]
+dependencies = [
+    "aiohttp>=3.12.13",
+]
 readme = {file = "README.md", content-type = "text/markdown" }
 authors = [{name = "Jean Demeusy", email = "jean.demeusy@hoprnet.org"}]
 maintainers = [{name = "Jean Demeusy", email = "jean.demeusy@hoprnet.org"}]
@@ -20,6 +22,7 @@ dev = [
     "pytest-asyncio==0.26.0",
     "pytest-mock==3.14.0",
     "pytest-cov>=6.2.1",
+    "flask>=3.1.1",
 ]
 lint = [
     "ruff>=0.11.4",

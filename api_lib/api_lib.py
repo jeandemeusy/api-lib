@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any, Iterable, Optional, Tuple, Union, get_args, get_origin
+from typing import Any, Callable, Iterable, Optional, Tuple, Union, get_args, get_origin
 
 import aiohttp
 
@@ -127,7 +127,7 @@ class ApiLib:
         self,
         method: Method,
         path: str,
-        resp_type: Optional[Response] = None,
+        resp_type: Optional[Callable] = None,
         data: Optional[RequestData] = None,
         use_api_prefix: bool = True,
         return_state: bool = False,
@@ -158,7 +158,7 @@ class ApiLib:
         self,
         method: Method,
         path: str,
-        resp_type: Optional[Response] = None,
+        resp_type: Optional[Callable] = None,
         data: Optional[RequestData] = None,
         use_api_prefix: bool = True,
         return_state: bool = False,
