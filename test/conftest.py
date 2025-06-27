@@ -1,20 +1,16 @@
-import os
 import time
 from multiprocessing import Process
 
 import pytest
-from dotenv import load_dotenv
 
 from api_lib.api_lib import ApiLib
 from api_lib.headers.authorization import Bearer
 
 from .config.rest_api import run_server
 
-load_dotenv("./test/.env")
-
-REST_API_HOST = os.getenv("REST_API_HOST")
-REST_API_PORT = int(os.getenv("REST_API_PORT"))
-REST_API_TOKN = os.getenv("REST_API_TOKN")
+REST_API_HOST: str = "localhost"
+REST_API_PORT: int = 5001
+REST_API_TOKN: str = "test_token"
 
 
 @pytest.fixture
