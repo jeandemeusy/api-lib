@@ -2,10 +2,21 @@ from dataclasses import dataclass, field, fields
 from decimal import Decimal
 from typing import Any, Iterable, Optional, get_args, get_origin
 
+"""Defines the Response base class and helpers for API response serialization and metrics."""
+
 APIobject = dataclass(init=False)
 
 
 def APIfield(path: Optional[str] = None, default: Optional[object] = None):
+    """Create a dataclass field with optional path and default metadata for API responses.
+
+    Args:
+        path: Path in the response object.
+        default: Default value for the field.
+
+    Returns:
+        dataclasses.Field: Configured dataclass field.
+    """
     metadata: dict[str, Any] = dict()
     if path:
         metadata["path"] = path
@@ -16,6 +27,14 @@ def APIfield(path: Optional[str] = None, default: Optional[object] = None):
 
 
 def APImetric(labels: Optional[list[str]] = None):
+    """Create a dataclass field for metrics with optional label metadata.
+
+    Args:
+        labels: List of label names for the metric.
+
+    Returns:
+        dataclasses.Field: Configured dataclass field.
+    """
     metadata: dict[str, Any] = dict()
     if labels:
         metadata["labels"] = labels
@@ -24,15 +43,28 @@ def APImetric(labels: Optional[list[str]] = None):
 
 
 class Response:
+    """Base class for API response data objects, providing serialization helpers."""
+
     def post_init(self):
+        """Optional post-initialization hook for subclasses."""
         pass
 
     @property
     def is_null(self):
+        """Check if all fields in the response are None.
+
+        Returns:
+            bool: True if all fields are None, False otherwise.
+        """
         return all(getattr(self, key) is None for key in [f.name for f in fields(self)])
 
     @property
     def as_dict(self) -> dict:
+        """Serialize the dataclass fields to a dictionary.
+
+        Returns:
+            dict: Dictionary of field names and their values.
+        """
         return {key: getattr(self, key) for key in [f.name for f in fields(self)]}
 
     def __str__(self):
@@ -44,6 +76,11 @@ class Response:
 
 class JsonResponse(Response):
     def __init__(self, data: dict):
+        """Initialize from a dictionary, mapping keys to dataclass fields.
+
+        Args:
+            data: Dictionary with data to initialize the response.
+        """
         for f in fields(self):
             origin: Optional[Any] = get_origin(f.type)
             args = get_args(f.type)
@@ -74,6 +111,11 @@ class JsonResponse(Response):
 
 class MetricResponse(Response):
     def __init__(self, data: str):
+        """Initialize from a Prometheus metrics string.
+
+        Args:
+            data: String with Prometheus metrics data.
+        """
         for f in fields(self):
             args = get_args(f.type)
             arg = args[0] if args else f.type
