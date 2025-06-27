@@ -44,6 +44,7 @@ def APImetric(labels: Optional[list[str]] = None):
 
 class Response:
     """Base class for API response data objects, providing serialization helpers."""
+
     def post_init(self):
         """Optional post-initialization hook for subclasses."""
         pass
@@ -94,7 +95,7 @@ class JsonResponse(Response):
                 if default := f.metadata.get("default", None):
                     if not isinstance(default, arg):
                         raise TypeError(
-                            f"Default value for {f.name} must be of type {arg.__name__}, "
+                            f"Default value for {f.name} must be of type {arg.__name__}, "  # ty: ignore[possibly-unbound-attribute]
                             f"got {type(default).__name__}"
                         )
                     setattr(self, f.name, default)
@@ -104,7 +105,7 @@ class JsonResponse(Response):
                 if origin and issubclass(origin, Iterable) and arg:
                     setattr(self, f.name, [arg(obj) for obj in v])
                 else:
-                    setattr(self, f.name, arg(v))
+                    setattr(self, f.name, arg(v))  # ty: ignore[call-non-callable]
         self.post_init()
 
 
@@ -129,7 +130,7 @@ class MetricResponse(Response):
                 value = line.split(" ")[-1]
 
                 if len(labels) == 0:
-                    setattr(self, f.name, arg(value) + getattr(self, f.name, 0))
+                    setattr(self, f.name, arg(value) + getattr(self, f.name, 0))  # ty: ignore[call-non-callable]
                 else:
                     labels_values = {
                         pair.split("=")[0].strip('"').strip(): pair.split("=")[1].strip('"').strip()
@@ -147,4 +148,4 @@ class MetricResponse(Response):
                     current[dict_path[-1]] += Decimal(value)
 
             if len(labels) > 0:
-                setattr(self, f.name, arg(values))
+                setattr(self, f.name, arg(values))  # ty: ignore[call-non-callable]

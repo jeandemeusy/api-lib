@@ -1,6 +1,5 @@
 """HTTP method enumeration for API requests."""
 
-
 from enum import Enum
 
 
