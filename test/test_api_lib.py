@@ -8,7 +8,6 @@ from api_lib.method import Method
 @pytest.mark.asyncio
 async def test_successfull_call(api: ApiLib):
     status, resp = await api._call(Method.GET, "/always_succeed")
-
     assert status == 200
     assert isinstance(resp, dict)
 
@@ -36,7 +35,6 @@ async def test_exception_call_with_timeout(api: ApiLib):
 @pytest.mark.asyncio
 async def test_api_returns_list(api: ApiLib):
     repos = await api.req(Method.GET, "/returns_list", list[dict])
-
     assert isinstance(repos, list)
     assert len(repos) > 0
 
@@ -44,7 +42,6 @@ async def test_api_returns_list(api: ApiLib):
 @pytest.mark.asyncio
 async def test_api_returns_text(api: ApiLib):
     readme = await api.req(Method.GET, "/read_me", str)
-
     assert isinstance(readme, str)
     assert len(readme) > 0
 
@@ -82,7 +79,6 @@ async def test_timeout_check_success(api: ApiLib):
 @pytest.mark.asyncio
 async def test_status_failed_try_req(api: ApiLib):
     result = await api.try_req(Method.GET, "/invalid_query")
-
     assert result is None
 
 
@@ -90,3 +86,12 @@ async def test_status_failed_try_req(api: ApiLib):
 async def test_status_failed_req(api: ApiLib):
     with pytest.raises(RuntimeError):
         await api.req(Method.GET, "/invalid_query")
+
+
+@pytest.mark.asyncio
+async def test_authenticated_call(api: ApiLib, api_not_authenticated: ApiLib):
+    status, resp = await api._call(Method.GET, "/authenticated")
+    assert status == 200
+
+    status, resp = await api_not_authenticated._call(Method.GET, "/authenticated")
+    assert status == 401

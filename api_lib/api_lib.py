@@ -17,7 +17,7 @@ class ApiLib:
     def __init__(
         self,
         url: str,
-        token: Authorization,
+        token: Optional[Authorization] = None,
         prefix: Optional[str] = None,
     ):
         self.host = url
@@ -41,7 +41,7 @@ class ApiLib:
                 "data": getattr(data, "as_dict", {}),
             },
         )
-        async with aiohttp.ClientSession(headers=self.token.header) as s:
+        async with aiohttp.ClientSession(headers=getattr(self.token, "header", {})) as s:
             async with getattr(s, method.value)(
                 url=f"{self.host}{self.prefix if use_api_prefix else ''}{path}",
                 json={} if data is None else data.as_dict,
