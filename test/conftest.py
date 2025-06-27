@@ -1,3 +1,4 @@
+import os
 import time
 from multiprocessing import Process
 
@@ -7,31 +8,38 @@ from dotenv import load_dotenv
 from api_lib.api_lib import ApiLib
 from api_lib.headers.authorization import Bearer
 
-from .config.request import RequestClass
 from .config.rest_api import run_server
 
-load_dotenv()
+load_dotenv("./test/.env")
+
+REST_API_HOST = os.getenv("REST_API_HOST")
+REST_API_PORT = int(os.getenv("REST_API_PORT"))
+REST_API_TOKN = os.getenv("REST_API_TOKN")
 
 
 @pytest.fixture
 def api():
-    return ApiLib("http://127.0.0.1:5001", Bearer("test_token"))
+    return ApiLib(f"http://{REST_API_HOST}:{REST_API_PORT}", Bearer(REST_API_TOKN))
 
 
 @pytest.fixture
 def api_not_reachable():
-    return ApiLib("http://127.0.0.1:5002", Bearer("test_token"))
+    return ApiLib(f"http://{REST_API_HOST}:{REST_API_PORT+1}", Bearer(REST_API_TOKN))
 
 
 @pytest.fixture
-def request_object():
-    return RequestClass("test_value", "path_value")
+def api_not_authenticated():
+    return ApiLib(f"http://{REST_API_HOST}:{REST_API_PORT}")
 
 
 @pytest.fixture(scope="session", autouse=True)
 def rest_server():
-    proc = Process(target=run_server, daemon=True)
+    proc = Process(
+        target=run_server,
+        args=(REST_API_HOST, REST_API_PORT),
+        daemon=True,
+    )
     proc.start()
-    time.sleep(1)  # wait for server to start
+    time.sleep(0.2)  # wait for server to start
     yield
     proc.terminate()

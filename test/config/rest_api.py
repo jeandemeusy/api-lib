@@ -1,11 +1,18 @@
 import random
 import time
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 
 
 def create_test_app():
     app = Flask(__name__)
+
+    @app.route("/authenticated", methods=["GET"])
+    def authenticated():
+        token = request.headers.get("Authorization")
+        if not token:
+            return jsonify({"error": "Unauthorized"}), 401
+        return jsonify({"message": "Authenticated successfully"}), 200
 
     @app.route("/read_me", methods=["GET"])
     def read_me():
@@ -47,6 +54,6 @@ def create_test_app():
     return app
 
 
-def run_server():
+def run_server(host: str, port: int):
     app = create_test_app()
-    app.run(debug=False, port=5001)
+    app.run(host=host, port=port, debug=False)

@@ -28,7 +28,6 @@ def test_api_field_with_path():
 
 def test_api_field_with_default():
     obj = ResponseClass({"default_field": None})
-
     assert isinstance(obj.default_field, str)
     assert obj.default_field == "default_value"
 
@@ -70,7 +69,6 @@ def test_equality():
     )
     obj2 = ResponseClass({"field": "test_value", "path": {"to": {"field": "test_path_value"}}})
     obj3 = ResponseClass({"field": "different_value"})
-
     assert obj1 == obj2
     assert obj1 != obj3
     assert obj2 != obj3
@@ -93,7 +91,6 @@ def test_metric_response():
     metric_four{label_name="label_1", other_label_name="other_label_1"} 50
     """
     )
-
     assert response.metric_one == 123.45
     assert response.metric_two["label_1"] == Decimal("42.42")
     assert response.metric_two["label_2"] == Decimal("24.24")
@@ -109,7 +106,6 @@ def test_metric_response_multiple_labels_sum():
     metric_two{label_name="label_2"} 24.24
     """
     )
-
     assert response.metric_two["label_1"] == Decimal("52.52")
     assert response.metric_two["label_2"] == Decimal("24.24")
 
@@ -123,7 +119,6 @@ def test_metric_response_multiple_labels_distinct():
     metric_four{label_name="label_2"} 24.24
     """
     )
-
     assert response.metric_four["label_1"]["other_label_1"] == Decimal("42.42")
     assert response.metric_four["label_1"]["other_label_2"] == Decimal("10.10")
     assert response.metric_four["label_2"] == Decimal("24.24")
@@ -138,7 +133,6 @@ def test_metric_response_with_list():
             ],
         }
     )
-
     assert len(response.this_list) == 2
     assert isinstance(response.this_list[0], User)
     assert response.this_list[0].login == "user1"
@@ -160,7 +154,6 @@ def test_metric_response_nested_objects():
         }
     )
     assert len(response.that_list) == 2
-
     for item in response.that_list:
         assert isinstance(item, UserWithObject)
         assert isinstance(item.user, User)
