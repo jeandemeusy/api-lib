@@ -3,8 +3,7 @@ name: Format and tests
 on:
   push:
     branches: [master]
-  pull_request:
-    types: [opened, synchronize, closed]
+  pull_request: {}
 
 concurrency:
   # find the branch name for 'pull_request' or on 'push' events
