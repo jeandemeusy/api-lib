@@ -12,6 +12,16 @@ logger = logging.getLogger("api-lib")
 
 
 class ApiLib:
+    """
+    Main API client class for making asynchronous HTTP requests with custom headers and authentication.
+
+    Attributes:
+        headers (list[Header]): List of default headers to include in requests.
+        host (str): Base URL for the API.
+        token (Optional[Authorization]): Optional authorization header.
+        prefix (str): Optional prefix for API endpoints.
+    """
+
     headers: list[Header] = []
 
     def __init__(
@@ -20,6 +30,14 @@ class ApiLib:
         token: Optional[Authorization] = None,
         prefix: Optional[str] = None,
     ):
+        """
+        Initialize the ApiLib client.
+
+        Args:
+            url (str): Base URL for the API.
+            token (Optional[Authorization]): Optional authorization header.
+            prefix (Optional[str]): Optional prefix for API endpoints.
+        """
         self.host = url
         self.token = token
         self.prefix = prefix or ""
@@ -32,6 +50,18 @@ class ApiLib:
         data: Optional[RequestData] = None,
         use_api_prefix: bool = True,
     ):
+        """
+        Internal method to perform an asynchronous HTTP request.
+
+        Args:
+            method (Method): HTTP method to use.
+            path (str): API endpoint path.
+            data (Optional[RequestData]): Request data to send.
+            use_api_prefix (bool): Whether to use the API prefix.
+
+        Returns:
+            tuple: A tuple containing the response status and data.
+        """
         logger.debug(
             "Hitting API",
             {
@@ -64,6 +94,19 @@ class ApiLib:
         timeout: int = 90,
         use_api_prefix: bool = True,
     ) -> tuple[Optional[int], Optional[object]]:
+        """
+        Internal method to perform an asynchronous HTTP request with a timeout.
+
+        Args:
+            method (Method): HTTP method to use.
+            path (str): API endpoint path.
+            data (Optional[RequestData]): Request data to send.
+            timeout (int): Timeout in seconds.
+            use_api_prefix (bool): Whether to use the API prefix.
+
+        Returns:
+            tuple: A tuple containing the response status and data, or (None, None) on error.
+        """
         while True:
             try:
                 return await asyncio.wait_for(
@@ -122,6 +165,21 @@ class ApiLib:
         return_state: bool = False,
         timeout: int = 90,
     ) -> Optional[Union[Response, dict]]:
+        """
+        Attempt to perform an API request and deserialize the response.
+
+        Args:
+            method (Method): HTTP method to use.
+            path (str): API endpoint path.
+            resp_type (Optional[Callable]): Response type or model to deserialize the response data.
+            data (Optional[RequestData]): Request data to send.
+            use_api_prefix (bool): Whether to use the API prefix.
+            return_state (bool): Whether to return the response status.
+            timeout (int): Timeout in seconds.
+
+        Returns:
+            Optional[Union[Response, dict]]: The deserialized response data, or None on error.
+        """
         status, r = await self._call_api_with_timeout(
             method, path, data, timeout=timeout, use_api_prefix=use_api_prefix
         )
@@ -153,6 +211,25 @@ class ApiLib:
         return_state: bool = False,
         timeout: int = 90,
     ) -> Union[Response]:
+        """
+        Perform an API request and return the response.
+
+        Args:
+            method (Method): HTTP method to use.
+            path (str): API endpoint path.
+            resp_type (Optional[Callable]): Response type or model to deserialize the response data.
+            data (Optional[RequestData]): Request data to send.
+            use_api_prefix (bool): Whether to use the API prefix.
+            return_state (bool): Whether to return the response status.
+            timeout (int): Timeout in seconds.
+
+        Raises:
+            RuntimeError: If the API request fails.
+
+        Returns:
+            Union[Response]: The deserialized response data.
+
+        """
         resp = await self.try_req(
             method,
             path,
@@ -175,7 +252,17 @@ class ApiLib:
             raise RuntimeError("API request failed")
         return resp
 
-    async def timeout_check_success(self, path: str, timeout: int = 20):
+    async def timeout_check_success(self, path: str, timeout: int = 20) -> bool:
+        """
+        Check if the API endpoint is reachable and responds successfully within the timeout.
+
+        Args:
+            path (str): API endpoint path.
+            timeout (int): Timeout in seconds.
+
+        Returns:
+            bool: True if the endpoint is reachable and responds with a 2xx status, False otherwise.
+        """
         try:
             is_ok = await asyncio.wait_for(self.__check_url(path), timeout=timeout)
         except (asyncio.TimeoutError, Exception):
@@ -183,7 +270,17 @@ class ApiLib:
         else:
             return is_ok
 
-    async def __check_url(self, path: str, use_api_prefix: bool = False):
+    async def __check_url(self, path: str, use_api_prefix: bool = False) -> bool:
+        """
+        Internal method to check the availability of an API endpoint.
+
+        Args:
+            path (str): API endpoint path.
+            use_api_prefix (bool): Whether to use the API prefix.
+
+        Returns:
+            bool: True if the endpoint is available, False otherwise.
+        """
         is_ok = False
         while not is_ok:
             try:
