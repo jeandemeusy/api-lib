@@ -35,4 +35,4 @@ markdown_extensions:
   - toc:
       permalink: true
 extra_css:
-- css/mkdocstrings.css
+  - css/mkdocstrings.css
