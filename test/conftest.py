@@ -1,6 +1,5 @@
 import time
 from multiprocessing import Process
-from test.config.rest_api import run_server
 
 import pytest
 from dotenv import load_dotenv
@@ -9,6 +8,7 @@ from api_lib.api_lib import ApiLib
 from api_lib.headers.authorization import Bearer
 
 from .config.request import RequestClass
+from .config.rest_api import run_server
 
 load_dotenv()
 

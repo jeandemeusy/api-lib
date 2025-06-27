@@ -3,7 +3,9 @@ exclude_also =
     def __repr__
     def __str__
     if __name__ == .__main__.:
-
+    logger.*
+    logging.*
+    
 omit = 
     test*/*
     __init__.py

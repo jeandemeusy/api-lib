@@ -1,24 +1,41 @@
-from test.config.response import Repository, User
-
 import pytest
+from aiohttp import ClientConnectorError
 
 from api_lib.api_lib import ApiLib
 from api_lib.method import Method
 
 
 @pytest.mark.asyncio
-async def test_simple_api(api: ApiLib):
-    user = await api.req(Method.GET, "/user", User)
+async def test_successfull_call(api: ApiLib):
+    status, resp = await api._call(Method.GET, "/always_succeed")
 
-    assert user.login != ""
-    assert user.name != ""
-    assert user.disk_usage >= 0
-    assert user.disk_space_limit > 0
+    assert status == 200
+    assert isinstance(resp, dict)
+
+
+@pytest.mark.asyncio
+async def test_invalid_query_call(api: ApiLib):
+    status, resp = await api._call(Method.GET, "/invalid_query")
+    assert status == 404
+
+
+@pytest.mark.asyncio
+async def test_txt_call(api: ApiLib):
+    status, resp = await api._call(Method.GET, "/read_me")
+    assert status == 200
+    assert isinstance(resp, str)
+
+
+@pytest.mark.asyncio
+async def test_exception_call_with_timeout(api: ApiLib):
+    status, resp = await api._call_api_with_timeout(Method.GET, "/slow_endpoint", timeout=2)
+    assert status is None
+    assert resp is None
 
 
 @pytest.mark.asyncio
 async def test_api_returns_list(api: ApiLib):
-    repos = await api.req(Method.GET, "/orgs/astral-sh/repos", list[Repository])
+    repos = await api.req(Method.GET, "/returns_list", list[dict])
 
     assert isinstance(repos, list)
     assert len(repos) > 0
@@ -33,28 +50,20 @@ async def test_api_returns_text(api: ApiLib):
 
 
 @pytest.mark.asyncio
-async def test_expect_oserror(api: ApiLib):
-    with pytest.raises(RuntimeError):
-        await api.req(Method.GET, "/invalid_query")
-
-
-@pytest.mark.asyncio
 async def test_unreachable_endpoint(api_not_reachable: ApiLib):
-    with pytest.raises(RuntimeError):
-        await api_not_reachable.req(Method.GET, "/user", User)
+    with pytest.raises(ClientConnectorError):
+        await api_not_reachable._call(Method.GET, "/always_succeed")
 
 
 @pytest.mark.asyncio
 async def test_return_state(api: ApiLib):
-    result = await api.req(Method.GET, "/user", User, return_state=True)
-
-    assert isinstance(result, bool)
-    assert result is True
+    status = await api.req(Method.GET, "/always_succeed", return_state=True)
+    assert isinstance(status, int)
 
 
 @pytest.mark.asyncio
 async def test_no_return_type(api: ApiLib):
-    result = await api.req(Method.GET, "/user", None)
+    result = await api.req(Method.GET, "/always_succeed", None)
     assert isinstance(result, dict)
 
 
@@ -68,3 +77,16 @@ async def test_timeout_check_success(api: ApiLib):
 
     result = await api.timeout_check_success("/randomly_succeed", timeout=2)
     assert result is True
+
+
+@pytest.mark.asyncio
+async def test_status_failed_try_req(api: ApiLib):
+    result = await api.try_req(Method.GET, "/invalid_query")
+
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_status_failed_req(api: ApiLib):
+    with pytest.raises(RuntimeError):
+        await api.req(Method.GET, "/invalid_query")

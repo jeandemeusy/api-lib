@@ -25,7 +25,7 @@ class ApiLib:
         self.prefix = prefix or ""
         self._headers = {k: v for h in (self.headers or []) for k, v in h.header.items()}
 
-    async def __call(
+    async def _call(
         self,
         method: Method,
         path: str,
@@ -41,60 +41,36 @@ class ApiLib:
                 "data": getattr(data, "as_dict", {}),
             },
         )
-        try:
-            async with aiohttp.ClientSession(headers=self.token.header) as s:
-                async with getattr(s, method.value)(
-                    url=f"{self.host}{self.prefix if use_api_prefix else ''}{path}",
-                    json={} if data is None else data.as_dict,
-                    headers=self._headers,
-                ) as res:
-                    try:
-                        data = await res.json()
-                    except Exception:
-                        data = await res.text()
+        async with aiohttp.ClientSession(headers=self.token.header) as s:
+            async with getattr(s, method.value)(
+                url=f"{self.host}{self.prefix if use_api_prefix else ''}{path}",
+                json={} if data is None else data.as_dict,
+                headers=self._headers,
+            ) as res:
+                try:
+                    data: dict = await res.json()
+                except aiohttp.ContentTypeError:
+                    data: str = await res.text()
+                except Exception as e:
+                    raise e
 
-                    return (res.status // 200) == 1, data
-        except OSError as err:
-            logger.error(
-                "OSError while doing an API call",
-                {
-                    "error": str(err),
-                    "host": self.host,
-                    "method": method.value,
-                    "path": path,
-                },
-            )
+                return res.status, data
 
-        except Exception as err:
-            logger.error(
-                f"Exception while doing an API call {err}",
-                {
-                    "error": str(err),
-                    "host": self.host,
-                    "method": method.value,
-                    "path": path,
-                },
-            )
-
-        return (False, None)
-
-    async def __call_api_with_timeout(
+    async def _call_api_with_timeout(
         self,
         method: Method,
         path: str,
         data: Optional[RequestData] = None,
         timeout: int = 90,
         use_api_prefix: bool = True,
-    ) -> tuple[bool, Optional[object]]:
-        backoff = 0.5
+    ) -> tuple[Optional[int], Optional[object]]:
         while True:
             try:
-                result = await asyncio.wait_for(
-                    asyncio.create_task(self.__call(method, path, data, use_api_prefix)),
+                return await asyncio.wait_for(
+                    asyncio.create_task(self._call(method, path, data, use_api_prefix)),
                     timeout=timeout,
                 )
             except aiohttp.ClientConnectionError as err:
-                backoff *= 2
                 logger.exception(
                     "ClientConnection exception while doing an API call.",
                     {
@@ -102,13 +78,8 @@ class ApiLib:
                         "host": self.host,
                         "method": method.value,
                         "path": path,
-                        "backoff": backoff,
                     },
                 )
-                if backoff > 10:
-                    return (False, None)
-                await asyncio.sleep(backoff)
-
             except asyncio.TimeoutError as err:
                 logger.error(
                     "Timeout error while doing an API call",
@@ -119,9 +90,27 @@ class ApiLib:
                         "path": path,
                     },
                 )
-                return (False, None)
-            else:
-                return result
+            except OSError as err:
+                logger.error(
+                    "OSError while doing an API call",
+                    {
+                        "error": str(err),
+                        "host": self.host,
+                        "method": method.value,
+                        "path": path,
+                    },
+                )
+            except Exception as err:
+                logger.error(
+                    f"Exception while doing an API call {err}",
+                    {
+                        "error": str(err),
+                        "host": self.host,
+                        "method": method.value,
+                        "path": path,
+                    },
+                )
+            return (None, None)
 
     async def try_req(
         self,
@@ -133,14 +122,14 @@ class ApiLib:
         return_state: bool = False,
         timeout: int = 90,
     ) -> Optional[Union[Response, dict]]:
-        is_ok, r = await self.__call_api_with_timeout(
+        status, r = await self._call_api_with_timeout(
             method, path, data, timeout=timeout, use_api_prefix=use_api_prefix
         )
 
         if return_state:
-            return is_ok
+            return status // 100 == 2  # Return True if status is a 2xx response
 
-        if not is_ok:
+        if status // 100 != 2:  # Not a 2xx response
             return None
 
         if resp_type is None:
