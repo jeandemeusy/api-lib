@@ -38,12 +38,14 @@ def main(specs: Path, name: Path):
         name / ObjectType.RESPONSE.folder, name / ObjectType.REQUEST.folder
     )
 
-    for cls, value in specifications.components.schemas.items():
-        filename: str = lib.to_snakecase(cls)
-        type: ObjectType = ObjectType.RESPONSE if cls in specifications.response_objects else ObjectType.REQUEST
+    for cls_name, value in specifications.components.schemas.items():
+        type: ObjectType = ObjectType.RESPONSE if cls_name in specifications.response_objects else ObjectType.REQUEST
+        folder: Path = resp_folder if type == ObjectType.RESPONSE else req_folder
 
-        content: str = value.object_file_content(cls, type)
-        write_content_to_file(resp_folder / f"{filename}.py", content)
+        write_content_to_file(
+            folder / f"{lib.snakecase(cls_name)}.py",
+            value.object_file_content(cls_name, type),
+        )
 
 
 if __name__ == "__main__":

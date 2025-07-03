@@ -1,6 +1,6 @@
 from enum import Enum
 
-from ..lib import to_snakecase
+from ..lib import snakecase
 from .parser import Parser, ParserObject
 
 
@@ -71,7 +71,7 @@ class QueryObjects(Parser):
         props = self.properties if self.properties else {}
         body: list[str] = []
         for key, value in props.items():
-            snake_case = to_snakecase(key)
+            snake_case = snakecase(key)
             custom_path = f'"{key}"' if snake_case != key else ""
 
             body.append(f"\t{snake_case}: {value.exported_type} = APIfield({custom_path})")
