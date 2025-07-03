@@ -4,7 +4,7 @@ from .parser import Parser, ParserObject
 @ParserObject
 class Responses(Parser):
     description: str
-    content: dict[str, dict]
+    content: dict
 
 
 @ParserObject
@@ -20,3 +20,6 @@ class Query(Parser):
 class Methods(Parser):
     get: Query
     post: Query
+    delete: Query
+    put: Query
+    patch: Query

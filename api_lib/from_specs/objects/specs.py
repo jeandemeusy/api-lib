@@ -12,3 +12,31 @@ class Specs(Parser):
     paths: dict[str, Methods]
     components: Components
     tags: list[Tags]
+
+    @property
+    def response_objects(self) -> set[str]:
+        objects: set[str] = set()
+
+        for key, value in self.paths.items():
+            for method in vars(value):
+                query = getattr(value, method)
+
+                if query is None:
+                    continue
+
+                for response in query.responses.values():
+                    if response.content is None:
+                        continue
+
+                    path = ["application/json", "schema", "$ref"]
+
+                    ref = response.content
+                    for part in path:
+                        ref = ref.get(part, None) if ref else None
+
+                    if ref is None:
+                        continue
+
+                    objects.add(ref.split("/")[-1])
+
+        return objects

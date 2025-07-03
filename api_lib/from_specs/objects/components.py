@@ -1,5 +1,16 @@
+from enum import Enum
+
 from ..lib import to_snakecase
 from .parser import Parser, ParserObject
+
+
+class ObjectType(Enum):
+    RESPONSE = "response"
+    REQUEST = "request"
+
+    @property
+    def folder(self) -> str:
+        return f"{self.value}s"
 
 
 @ParserObject
@@ -41,30 +52,36 @@ class QueryObjects(Parser):
     required: list[str]
     properties: dict[str, QueryObjectProperty]
 
-    def object_file_content_response(self, name: str) -> str:
+    def object_file_content(self, name: str, type: ObjectType) -> str:
+        if type == ObjectType.RESPONSE:
+            return self._object_file_content_response(name)
+        elif type == ObjectType.REQUEST:
+            return self._object_file_content_request(name)
+        else:
+            raise ValueError(f"Unknown object type: {type}")
+
+    def _object_file_content_response(self, name: str) -> str:
         props = self.properties if self.properties else {}
         body: list[str] = [f"\t{key}: {value.exported_type} = APIfield()" for key, value in props.items()]
-        headers = [
-            "from api_lib.objects.response import APIfield, APIobject, JsonResponse"]
+        headers = ["from api_lib.objects.response import APIfield, APIobject, JsonResponse"]
 
         return self._object_file_content(name, headers, body, ["@APIobject"], ["JsonResponse"])
 
-    def object_file_content_request(self, name: str) -> str:
+    def _object_file_content_request(self, name: str) -> str:
         props = self.properties if self.properties else {}
         body: list[str] = []
         for key, value in props.items():
             snake_case = to_snakecase(key)
-            custom_path = f"\"{key}\"" if snake_case != key else ""
+            custom_path = f'"{key}"' if snake_case != key else ""
 
             body.append(f"\t{snake_case}: {value.exported_type} = APIfield({custom_path})")
 
-        headers = [
-            "from dataclasses import dataclass",
-            "from api_lib.objects.request import APIfield, RequestData"
-        ]
+        headers = ["from dataclasses import dataclass", "from api_lib.objects.request import APIfield, RequestData"]
         return self._object_file_content(name, headers, body, ["@dataclass"], ["RequestData"])
 
-    def _object_file_content(self, name: str, headers: list[str], body: list[str], decorators: list[str], parent_class: list[str]) -> str:
+    def _object_file_content(
+        self, name: str, headers: list[str], body: list[str], decorators: list[str], parent_class: list[str]
+    ) -> str:
         return f"""
 {'\n'.join(headers)}
 
@@ -75,7 +92,10 @@ class {name}({', '.join(parent_class)}):
 {'\n'.join(body)}
        """.strip()
 
+
 @ParserObject
 class Components(Parser):
     schemas: dict[str, QueryObjects]
+    securitySchemes: dict[str, dict]
+    securitySchemes: dict[str, dict]
     securitySchemes: dict[str, dict]

@@ -3,7 +3,15 @@ from pathlib import Path
 
 import click
 
+from . import lib
+from .objects.components import ObjectType
 from .objects.specs import Specs
+
+
+def write_content_to_file(file: Path, content: str):
+    """Writes the content to a file."""
+    with file.open("w") as f:
+        f.write(content)
 
 
 @click.command()
@@ -23,16 +31,19 @@ from .objects.specs import Specs
 )
 def main(specs: Path, name: Path):
     with specs.open("r") as file:
-        content: dict = json.load(file)
-
-    specifications = Specs(content)
+        specifications: Specs = Specs(json.load(file))
 
     # create the directory if it does not exist
-    name.mkdir(parents=True, exist_ok=True)
+    resp_folder, req_folder = lib.manage_directories(
+        name / ObjectType.RESPONSE.folder, name / ObjectType.REQUEST.folder
+    )
 
-    for key, value in specifications.components.schemas.items():
-        with (name / f"{key}.py").open("w") as file:
-            file.write(value.object_file_content_request(key))
+    for cls, value in specifications.components.schemas.items():
+        filename: str = lib.to_snakecase(cls)
+        type: ObjectType = ObjectType.RESPONSE if cls in specifications.response_objects else ObjectType.REQUEST
+
+        content: str = value.object_file_content(cls, type)
+        write_content_to_file(resp_folder / f"{filename}.py", content)
 
 
 if __name__ == "__main__":
