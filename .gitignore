@@ -30,3 +30,6 @@ foo*.*
 foo*/
 run_*.sh
 .DS_Store
+
+.generated.*
+*.specs.json

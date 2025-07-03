@@ -7,7 +7,10 @@ authors = [{name = "Jean Demeusy", email = "jean.demeusy@hoprnet.org"}]
 maintainers = [{name = "Jean Demeusy", email = "jean.demeusy@hoprnet.org"}]
 classifiers = ["Programming Language :: Python :: 3.13"]
 license = "MIT"
-dependencies = ["aiohttp>=3.12.13"]
+dependencies = [
+    "aiohttp>=3.12.13",
+    "click>=8.2.1",
+]
 
 [project.urls]
 Homepage = "https://github.com/jeandemeusy/api-lib"
