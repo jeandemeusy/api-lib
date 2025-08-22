@@ -59,8 +59,7 @@ def main(specs: Path, name: Path):
         )
 
     # Create the api.py file
-    main_file_content = \
-f"""
+    main_file_content = f"""
 from api_lib import ApiLib
 from api_lib.method import Method
 

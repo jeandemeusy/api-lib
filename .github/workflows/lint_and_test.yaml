@@ -28,11 +28,11 @@ jobs:
           
       - name: Lint with ruff
         working-directory: .
-        run: make fmt
+        run: just fmt
 
       - name: Test with pytest
         working-directory: .
-        run: make test
+        run: just test
 
       - name: Update Coverage Badge
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
