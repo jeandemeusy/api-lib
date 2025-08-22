@@ -184,6 +184,12 @@ class ApiLib:
             method, path, data, timeout=timeout, use_api_prefix=use_api_prefix
         )
 
+        if not status:
+            logger.error(
+                "API request failed",
+                {"method": method.value, "path": path, "data": getattr(data, "as_dict", {}), "error": str(r)},
+            )
+
         if return_state:
             return status // 100 == 2  # Return True if status is a 2xx response
 
