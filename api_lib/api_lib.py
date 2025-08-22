@@ -191,9 +191,11 @@ class ApiLib:
             )
 
         if return_state:
-            return status // 100 == 2  # Return True if status is a 2xx response
+            if status:
+                return status // 100 == 2  # Return True if status is a 2xx response
+            return None
 
-        if status // 100 != 2:  # Not a 2xx response
+        if not status or status // 100 != 2:  # Not a 2xx response
             return None
 
         if resp_type is None:
