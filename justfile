@@ -4,7 +4,7 @@ default: list
 
 fmt:
 	@uvx black api_lib test
-	@uvx ruff check api_lib test --output-format=github
+	@uvx ruff check api_lib test --fix --output-format=github
 	@uvx ty check api_lib test
 
 test:

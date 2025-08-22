@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 
 from ..lib import snakecase
 from .parser import Parser, ParserObject
@@ -15,10 +16,11 @@ class ObjectType(Enum):
 
 @ParserObject
 class QueryObjectProperty(Parser):
-    type: str
+    default: Optional[str]
+    description: str
     example: str
     format: str
-    example: str
+    type: str
 
     @property
     def exported_type(self) -> str:
@@ -62,7 +64,14 @@ class QueryObjects(Parser):
 
     def _object_file_content_response(self, name: str) -> str:
         props = self.properties if self.properties else {}
-        body: list[str] = [f"\t{key}: {value.exported_type} = APIfield()" for key, value in props.items()]
+        body = []
+        for key, value in props.items():
+            exported_key = snakecase(key)
+
+            line = f"\t{exported_key}: {value.exported_type}"
+            if exported_key != key:
+                line += f' = APIfield("{key}")'
+            body.append(line)
         headers = ["from api_lib.objects.response import APIfield, APIobject, JsonResponse"]
 
         return self._object_file_content(name, headers, body, ["@APIobject"], ["JsonResponse"])
@@ -72,9 +81,19 @@ class QueryObjects(Parser):
         body: list[str] = []
         for key, value in props.items():
             snake_case = snakecase(key)
-            custom_path = f'"{key}"' if snake_case != key else ""
 
-            body.append(f"\t{snake_case}: {value.exported_type} = APIfield({custom_path})")
+            line = f"\t{snake_case}: {value.exported_type}"
+
+            params = []
+            if snake_case != key:
+                params.append(f'"{key}"')
+            if value.default:
+                params.append(value.default)
+
+            if len(params) > 0:
+                line += f"= APIfield({','.join(params)})"
+
+            body.append(line)
 
         headers = ["from dataclasses import dataclass", "from api_lib.objects.request import APIfield, RequestData"]
         return self._object_file_content(name, headers, body, ["@dataclass"], ["RequestData"])
@@ -82,12 +101,31 @@ class QueryObjects(Parser):
     def _object_file_content(
         self, name: str, headers: list[str], body: list[str], decorators: list[str], parent_class: list[str]
     ) -> str:
+        description_str = self.description.replace("\n", " ")
+
+        descriptions_lines = []
+        description_words = description_str.split(" ")
+
+        if len(description_words) == 0:
+            description_str = "No description"
+            descriptions_lines = [description_str]
+        else:
+            index = 0
+            while len(description_words) > 0:
+                descriptions_lines.append("")
+                while (len(descriptions_lines[index]) + len(description_words[0]) + 1) <= 95:
+                    descriptions_lines[index] += f" {description_words.pop(0)}"
+                    if len(description_words) == 0:
+                        break
+                descriptions_lines[index] = descriptions_lines[index].strip()
+                index += 1
+
         return f"""
 {'\n'.join(headers)}
 
 {'\n'.join(decorators)}
 class {name}({', '.join(parent_class)}):
-\t\"\"\"{self.description.replace("\n", " ")}\"\"\"
+\t\"\"\"\n\t{'\n\t'.join(descriptions_lines)}\n\t\"\"\"
 
 {'\n'.join(body)}
        """.strip()
@@ -96,6 +134,4 @@ class {name}({', '.join(parent_class)}):
 @ParserObject
 class Components(Parser):
     schemas: dict[str, QueryObjects]
-    securitySchemes: dict[str, dict]
-    securitySchemes: dict[str, dict]
     securitySchemes: dict[str, dict]

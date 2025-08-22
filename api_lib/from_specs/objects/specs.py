@@ -18,9 +18,9 @@ class Specs(Parser):
         """Returns a set of all method strings used in the paths."""
         method_strings: list[str] = list()
 
-        for _, methods in self.paths.items():
-            method_strings.extend(methods.to_methods_strings)
-            
+        for path, methods in self.paths.items():
+            method_strings.extend(methods.to_methods_strings(path))
+
         return method_strings
 
     @property

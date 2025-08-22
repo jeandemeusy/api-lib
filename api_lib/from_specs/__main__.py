@@ -13,7 +13,7 @@ def write_content_to_file(file: Path, content: Optional[str] = None):
     """Writes the content to a file."""
     if not content:
         content = ""
-        
+
     with file.open("w") as f:
         f.write(content)
 
@@ -50,19 +50,29 @@ def main(specs: Path, name: Path):
         type: ObjectType = ObjectType.RESPONSE if cls_name in specifications.response_objects else ObjectType.REQUEST
         folder: Path = resp_folder if type == ObjectType.RESPONSE else req_folder
 
+        cls_name = cls_name.split("Response")[0]
+        cls_name = cls_name.split("Request")[0]
+
         write_content_to_file(
             folder / f"{lib.snakecase(cls_name)}.py",
             value.object_file_content(cls_name, type),
         )
 
     # Create the api.py file
-    main_file_content = f"""from . import requests, responses\n\n
-class {specifications.info.class_title}:
+    main_file_content = \
+f"""
+from api_lib import ApiLib
+from api_lib.method import Method
+
+from . import requests, responses
+
+
+class {specifications.info.class_title}(ApiLib):
 {'\n'.join([f"\t{line}" for line in specifications.method_strings])}
-    """
+""".strip()
+
     write_content_to_file(name / "api.py", main_file_content)
     write_content_to_file(name / "__init__.py")
-
 
 
 if __name__ == "__main__":
