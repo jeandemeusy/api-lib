@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Optional
 
 import click
 
@@ -8,8 +9,11 @@ from .objects.components import ObjectType
 from .objects.specs import Specs
 
 
-def write_content_to_file(file: Path, content: str):
+def write_content_to_file(file: Path, content: Optional[str] = None):
     """Writes the content to a file."""
+    if not content:
+        content = ""
+        
     with file.open("w") as f:
         f.write(content)
 
@@ -38,6 +42,10 @@ def main(specs: Path, name: Path):
         name / ObjectType.RESPONSE.folder, name / ObjectType.REQUEST.folder
     )
 
+    # Create request and response files in their respectives folders
+    write_content_to_file(resp_folder / "__init__.py")
+    write_content_to_file(req_folder / "__init__.py")
+
     for cls_name, value in specifications.components.schemas.items():
         type: ObjectType = ObjectType.RESPONSE if cls_name in specifications.response_objects else ObjectType.REQUEST
         folder: Path = resp_folder if type == ObjectType.RESPONSE else req_folder
@@ -46,6 +54,15 @@ def main(specs: Path, name: Path):
             folder / f"{lib.snakecase(cls_name)}.py",
             value.object_file_content(cls_name, type),
         )
+
+    # Create the api.py file
+    main_file_content = f"""from . import requests, responses\n\n
+class {specifications.info.class_title}:
+{'\n'.join([f"\t{line}" for line in specifications.method_strings])}
+    """
+    write_content_to_file(name / "api.py", main_file_content)
+    write_content_to_file(name / "__init__.py")
+
 
 
 if __name__ == "__main__":

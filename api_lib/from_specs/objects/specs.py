@@ -14,6 +14,16 @@ class Specs(Parser):
     tags: list[Tags]
 
     @property
+    def method_strings(self) -> list[str]:
+        """Returns a set of all method strings used in the paths."""
+        method_strings: list[str] = list()
+
+        for _, methods in self.paths.items():
+            method_strings.extend(methods.to_methods_strings)
+            
+        return method_strings
+
+    @property
     def response_objects(self) -> set[str]:
         objects: set[str] = set()
 
