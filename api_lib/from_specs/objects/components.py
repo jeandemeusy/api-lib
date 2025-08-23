@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Optional
 
-from ..lib import snakecase
+from ..lib import exported_type, snakecase
 from .parser import Parser, ParserObject
 
 
@@ -21,30 +21,6 @@ class QueryObjectProperty(Parser):
     example: str
     format: str
     type: str
-
-    @property
-    def exported_type(self) -> str:
-        type_mapping: dict[str, str] = {
-            "string": "str",
-            "integer": "int",
-            "boolean": "bool",
-            "number": "float",
-            "array": "list",
-            None: "str",
-        }
-        _type = self.type
-
-        if _type not in type_mapping:
-            for key in type_mapping.keys():
-                if key not in _type:
-                    continue
-                _type = key
-                break
-
-        if _type and "null" in _type:
-            return f"Optional[{type_mapping.get(_type, 'str')}]"
-        else:
-            return type_mapping.get(_type, "str")
 
 
 @ParserObject
@@ -68,7 +44,7 @@ class QueryObjects(Parser):
         for key, value in props.items():
             exported_key = snakecase(key)
 
-            line = f"\t{exported_key}: {value.exported_type}"
+            line = f"\t{exported_key}: {exported_type(value.type)}"
             if exported_key != key:
                 line += f' = APIfield("{key}")'
             body.append(line)
@@ -82,7 +58,7 @@ class QueryObjects(Parser):
         for key, value in props.items():
             snake_case = snakecase(key)
 
-            line = f"\t{snake_case}: {value.exported_type}"
+            line = f"\t{snake_case}: {exported_type(value.type)}"
 
             params = []
             if snake_case != key:

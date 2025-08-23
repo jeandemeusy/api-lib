@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 
 def snakecase(text: str) -> str:
@@ -18,3 +19,26 @@ def manage_directories(*directories: Path):
         directory.mkdir(parents=True, exist_ok=True)
 
     return directories
+
+
+def exported_type(_type: Any) -> str:
+    type_mapping: dict[str, str] = {
+        "string": "str",
+        "integer": "int",
+        "boolean": "bool",
+        "number": "float",
+        "array": "list",
+        "None": "str",
+    }
+
+    if _type and _type not in type_mapping:
+        for key in type_mapping.keys():
+            if str(key) not in _type:
+                continue
+            _type = key
+            break
+
+    if _type and "null" in _type:
+        return f"Optional[{type_mapping.get(_type, 'str')}]"
+    else:
+        return type_mapping.get(str(_type), "") if str(_type) in type_mapping else _type

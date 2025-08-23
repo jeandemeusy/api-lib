@@ -1,3 +1,4 @@
+from ..lib import exported_type
 from .parser import Parser, ParserObject
 
 
@@ -34,7 +35,7 @@ class Responses(Parser):
         else:
             ref = "NO_REF"
 
-        ref: str = ref.split("/")[-1].rstrip("Response") if ref else "NO_REF"
+        ref: str = ref.split("/")[-1].split("Response")[0] if ref else "NO_REF"
 
         if ref not in ["string", "integer", "boolean"]:
             ref = f"responses.{ref}"
@@ -61,8 +62,9 @@ class Query(Parser):
     def to_method_string(self, path: str, method: str) -> list[str]:
         """Returns the method name in a string format."""
         response = next((resp for code, resp in self.responses.items() if str(code).startswith("2")), None)
+
         if response:
-            ret_type = response.schema
+            ret_type = exported_type(response.schema)
         else:
             ret_type = "None"
 
