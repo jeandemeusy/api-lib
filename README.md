@@ -30,9 +30,9 @@ from api_lib.objects.response import APIfield, APIobject, JsonResponse
 
 @APIobject
 class User(JsonResponse):
-    login: str = APIfield()
-    name: str = APIfield()
-    disk_usage: int = APIfield()
+    login: str
+    name: str
+    disk_usage: int
     disk_space_limit: int = APIfield("plan/space")
 
 
