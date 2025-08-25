@@ -33,7 +33,8 @@ def write_content_to_file(file: Path, content: Optional[str] = None):
     required=True,
     help="Path where to store the generated files.",
 )
-def main(specs: Path, name: Path):
+@click.option("--prefix", required=False, default=None, help="API path prefix")
+def main(specs: Path, name: Path, prefix: Optional[str]):
     with specs.open("r") as file:
         specifications: Specs = Specs(json.load(file))
 
@@ -43,8 +44,10 @@ def main(specs: Path, name: Path):
     )
 
     # Create request and response files in their respectives folders
-    write_content_to_file(resp_folder / "__init__.py")
-    write_content_to_file(req_folder / "__init__.py")
+    # write_content_to_file(resp_folder / "__init__.py")
+    # write_content_to_file(req_folder / "__init__.py")
+
+    imports_strings = {type: [] for type in ObjectType}
 
     for cls_name, value in specifications.components.schemas.items():
         type: ObjectType = ObjectType.RESPONSE if cls_name in specifications.response_objects else ObjectType.REQUEST
@@ -57,9 +60,15 @@ def main(specs: Path, name: Path):
             folder / f"{lib.snakecase(cls_name)}.py",
             value.object_file_content(cls_name, type),
         )
+        imports_strings[type].append(f"from .{lib.snakecase(cls_name)} import {cls_name} as {cls_name}")
+
+    write_content_to_file(resp_folder / "__init__.py", "\n".join(imports_strings[ObjectType.RESPONSE]))
+    write_content_to_file(req_folder / "__init__.py", "\n".join(imports_strings[ObjectType.REQUEST]))
 
     # Create the api.py file
     main_file_content = f"""
+from typing import Optional
+
 from api_lib import ApiLib
 from api_lib.method import Method
 
@@ -67,7 +76,7 @@ from . import requests, responses
 
 
 class {specifications.info.class_title}(ApiLib):
-{'\n'.join([f"\t{line}" for line in specifications.method_strings])}
+{'\n'.join([f"\t{line}" for line in specifications.method_strings(prefix)])}
 """.strip()
 
     write_content_to_file(name / "api.py", main_file_content)

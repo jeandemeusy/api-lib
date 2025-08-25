@@ -12,7 +12,7 @@ test:
 	@find . -name ".coverage*" -not -name ".coveragerc" -delete
 
 specs:
-	@uv run -m api_lib.from_specs -s .specs.json -n .generated.hoprd
+	@uv run -m api_lib.from_specs -s .specs.json -n generated_api --prefix /api/v4
 
 list:
 	@just --list

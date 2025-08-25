@@ -28,10 +28,11 @@ def exported_type(_type: Any) -> str:
         "boolean": "bool",
         "number": "float",
         "array": "list",
+        "object": "dict",
         "None": "str",
     }
 
-    if _type and _type not in type_mapping:
+    if _type and str(_type) not in type_mapping:
         for key in type_mapping.keys():
             if str(key) not in _type:
                 continue

@@ -1,4 +1,6 @@
-from ..lib import exported_type
+from typing import Optional
+
+from ..lib import exported_type, snakecase
 from .parser import Parser, ParserObject
 
 
@@ -59,18 +61,40 @@ class Query(Parser):
         """Returns the method name in a string format."""
         return self.operationId.replace("-", "_").replace(" ", "_").lower()
 
-    def to_method_string(self, path: str, method: str) -> list[str]:
+    def to_method_string(self, path: str, method: str, prefix: Optional[str]) -> list[str]:
         """Returns the method name in a string format."""
         response = next((resp for code, resp in self.responses.items() if str(code).startswith("2")), None)
 
-        if response:
-            ret_type = exported_type(response.schema)
-        else:
-            ret_type = "None"
+        ret_type = exported_type(response.schema) if response else "None"
+
+        use_api_prefix = prefix and path.startswith(prefix)
+        full_path = path.split(prefix, 1)[1] if use_api_prefix else path
+        sub_paths = full_path.split("/")
 
         params = ["self"]
-        first_line: str = f"def {self.method_name}({', '.join(params)}) -> {ret_type}:"
-        second_line: str = f'return self.try_req(Method.{method.upper()}, "{path}", {ret_type})'
+        formatted_path = []
+        for sub_path in sub_paths:
+            if sub_path.startswith("{") and sub_path.endswith("}"):
+                params.append(snakecase(f"{sub_path[1:-1]}: str"))
+                formatted_path.append(snakecase(f"{'{'}{sub_path[1:-1]}{'}'}"))
+            else:
+                formatted_path.append(sub_path)
+
+        path = "/".join(formatted_path)
+
+        # first line
+        first_line: str = f"def {self.method_name}({', '.join(params)}) -> Optional[{ret_type}]:"
+
+        # second line
+
+        params: list[str] = [f"Method.{method.upper()}", f'{'f' if len(params) > 1 else ''}"{path}"', ret_type]
+
+        if not use_api_prefix:
+            params += ["use_api_prefix=False"]
+            if ret_type == "bool":
+                params += ["return_state=True"]
+
+        second_line: str = f"return self.try_req({', '.join(params)})"
         return [first_line, f"\t{second_line}\n"]
 
 
@@ -82,12 +106,12 @@ class Methods(Parser):
     put: Query
     patch: Query
 
-    def to_methods_strings(self, path: str) -> list[str]:
+    def to_methods_strings(self, path: str, prefix: Optional[str]) -> list[str]:
         """Returns a list of method names in string format."""
         methods = []
         for method in vars(self):
             query: Query = getattr(self, method)
             if query is not None:
-                methods.extend(query.to_method_string(path, method))
+                methods.extend(query.to_method_string(path, method, prefix))
 
         return methods

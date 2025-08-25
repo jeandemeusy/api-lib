@@ -1,3 +1,5 @@
+from typing import Optional
+
 from .components import Components
 from .infos import Infos
 from .parser import Parser, ParserObject
@@ -13,13 +15,12 @@ class Specs(Parser):
     components: Components
     tags: list[Tags]
 
-    @property
-    def method_strings(self) -> list[str]:
+    def method_strings(self, prefix: Optional[str]) -> list[str]:
         """Returns a set of all method strings used in the paths."""
         method_strings: list[str] = list()
 
         for path, methods in self.paths.items():
-            method_strings.extend(methods.to_methods_strings(path))
+            method_strings.extend(methods.to_methods_strings(path, prefix))
 
         return method_strings
 
@@ -38,11 +39,20 @@ class Specs(Parser):
                     if response.content is None:
                         continue
 
-                    path = ["application/json", "schema", "$ref"]
+                    path = ["application/json", "schema"]
+                    final_path = "$ref"
 
                     ref = response.content
                     for part in path:
                         ref = ref.get(part, None) if ref else None
+
+                    if ref is None:
+                        continue
+
+                    if items_ref := ref.get("items"):
+                        ref = items_ref.get(final_path)
+                    else:
+                        ref = ref.get(final_path)
 
                     if ref is None:
                         continue
