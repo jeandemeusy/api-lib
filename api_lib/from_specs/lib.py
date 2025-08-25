@@ -43,3 +43,23 @@ def exported_type(_type: Any) -> str:
         return f"Optional[{type_mapping.get(_type, 'str')}]"
     else:
         return type_mapping.get(str(_type), "") if str(_type) in type_mapping else _type
+
+
+def split_line_into_multiple_lines(string: str, length: int) -> list[str]:
+    sub_lines = []
+    words = string.split(" ")
+
+    if len(words) == 0:
+        return []
+
+    index = 0
+    while len(words) > 0:
+        sub_lines.append("")
+        while (len(sub_lines[index]) + len(words[0]) + 1) <= length:
+            sub_lines[index] += f" {words.pop(0)}"
+            if len(words) == 0:
+                break
+        sub_lines[index] = sub_lines[index].strip()
+        index += 1
+    
+    return sub_lines

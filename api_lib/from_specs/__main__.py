@@ -44,23 +44,20 @@ def main(specs: Path, name: Path, prefix: Optional[str]):
     )
 
     # Create request and response files in their respectives folders
-    # write_content_to_file(resp_folder / "__init__.py")
-    # write_content_to_file(req_folder / "__init__.py")
-
     imports_strings = {type: [] for type in ObjectType}
 
     for cls_name, value in specifications.components.schemas.items():
         type: ObjectType = ObjectType.RESPONSE if cls_name in specifications.response_objects else ObjectType.REQUEST
         folder: Path = resp_folder if type == ObjectType.RESPONSE else req_folder
 
-        cls_name = cls_name.split("Response")[0]
-        cls_name = cls_name.split("Request")[0]
+        cls_name = cls_name.split(ObjectType.RESPONSE.value.capitalize())[0]
+
+        imports_strings[type].append(f"from .{lib.snakecase(cls_name)} import {cls_name} as {cls_name}")
 
         write_content_to_file(
             folder / f"{lib.snakecase(cls_name)}.py",
             value.object_file_content(cls_name, type),
         )
-        imports_strings[type].append(f"from .{lib.snakecase(cls_name)} import {cls_name} as {cls_name}")
 
     write_content_to_file(resp_folder / "__init__.py", "\n".join(imports_strings[ObjectType.RESPONSE]))
     write_content_to_file(req_folder / "__init__.py", "\n".join(imports_strings[ObjectType.REQUEST]))

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from ..lib import exported_type, snakecase
+from ..lib import exported_type, snakecase, split_line_into_multiple_lines
 from .parser import Parser, ParserObject
 
 
@@ -61,6 +61,13 @@ class Query(Parser):
         """Returns the method name in a string format."""
         return self.operationId.replace("-", "_").replace(" ", "_").lower()
 
+    @property
+    def multiline_description(self) -> list[str]:
+        lines: list[str] = split_line_into_multiple_lines(self.description.replace("\n", " "), 92)
+
+        return [f"\t{line}" for line in lines]
+
+
     def to_method_string(self, path: str, method: str, prefix: Optional[str]) -> list[str]:
         """Returns the method name in a string format."""
         response = next((resp for code, resp in self.responses.items() if str(code).startswith("2")), None)
@@ -82,11 +89,15 @@ class Query(Parser):
 
         path = "/".join(formatted_path)
 
-        # first line
-        first_line: str = f"def {self.method_name}({', '.join(params)}) -> Optional[{ret_type}]:"
+        # definition line
+        def_line: str = f"def {self.method_name}({', '.join(params)}) -> Optional[{ret_type}]:"
+        
+        # comment line
+        description_lines = []
+        if self.description:
+            description_lines = ['\t"""'] + self.multiline_description + ['\t"""']
 
-        # second line
-
+        # return line
         params: list[str] = [f"Method.{method.upper()}", f'{'f' if len(params) > 1 else ''}"{path}"', ret_type]
 
         if not use_api_prefix:
@@ -94,8 +105,8 @@ class Query(Parser):
             if ret_type == "bool":
                 params += ["return_state=True"]
 
-        second_line: str = f"return self.try_req({', '.join(params)})"
-        return [first_line, f"\t{second_line}\n"]
+        return_line: str = f"return self.try_req({', '.join(params)})"
+        return [def_line, *description_lines, f"\t{return_line}\n"]
 
 
 @ParserObject

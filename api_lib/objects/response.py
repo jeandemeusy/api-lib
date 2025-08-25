@@ -2,8 +2,6 @@ from dataclasses import dataclass, field, fields
 from decimal import Decimal
 from typing import Any, Iterable, Optional, get_args, get_origin
 
-"""Defines the Response base class and helpers for API response serialization and metrics."""
-
 APIobject = dataclass(init=False)
 
 

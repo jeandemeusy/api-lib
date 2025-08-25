@@ -300,7 +300,7 @@ class ApiLib:
                     timeout=None,
                 )
             except Exception:
-                await asyncio.sleep(0.25)
+                await asyncio.sleep(0.1)
             else:
                 if is_ok:
                     return is_ok

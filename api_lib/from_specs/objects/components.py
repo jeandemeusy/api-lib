@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Optional
 
-from ..lib import exported_type, snakecase
+from ..lib import exported_type, snakecase, split_line_into_multiple_lines
 from .parser import Parser, ParserObject
 
 
@@ -48,9 +48,14 @@ class QueryObjects(Parser):
             if exported_key != key:
                 line += f' = APIfield("{key}")'
             body.append(line)
-        headers = ["from api_lib.objects.response import APIfield, APIobject, JsonResponse"]
 
-        return self._object_file_content(name, headers, body, ["@APIobject"], ["JsonResponse"])
+        imported_objects = ["APIobject", "JsonResponse"]
+        if "APIfield" in ' '.join(body):
+            imported_objects.append("APIfield")
+        
+        headers: list[str] = [f"from api_lib.objects.response import {', '.join(imported_objects)}"]
+
+        return self._object_file_content(name, headers, body, ["APIobject"], ["JsonResponse"])
 
     def _object_file_content_request(self, name: str) -> str:
         props = self.properties if self.properties else {}
@@ -79,27 +84,12 @@ class QueryObjects(Parser):
     ) -> str:
         description_str = self.description.replace("\n", " ")
 
-        descriptions_lines = []
-        description_words = description_str.split(" ")
-
-        if len(description_words) == 0:
-            description_str = "No description"
-            descriptions_lines = [description_str]
-        else:
-            index = 0
-            while len(description_words) > 0:
-                descriptions_lines.append("")
-                while (len(descriptions_lines[index]) + len(description_words[0]) + 1) <= 95:
-                    descriptions_lines[index] += f" {description_words.pop(0)}"
-                    if len(description_words) == 0:
-                        break
-                descriptions_lines[index] = descriptions_lines[index].strip()
-                index += 1
+        descriptions_lines: list[str] = split_line_into_multiple_lines(description_str, 92)
 
         return f"""
 {'\n'.join(headers)}
 
-{'\n'.join(decorators)}
+{'\n'.join([f"@{dec}" for dec in decorators])}
 class {name}({', '.join(parent_class)}):
 \t\"\"\"\n\t{'\n\t'.join(descriptions_lines)}\n\t\"\"\"
 
