@@ -77,7 +77,7 @@ class QueryObjects(Parser):
             body.append(line)
 
         headers = ["from dataclasses import dataclass", "from api_lib.objects.request import APIfield, RequestData"]
-        return self._object_file_content(name, headers, body, ["@dataclass"], ["RequestData"])
+        return self._object_file_content(name, headers, body, ["dataclass"], ["RequestData"])
 
     def _object_file_content(
         self, name: str, headers: list[str], body: list[str], decorators: list[str], parent_class: list[str]
