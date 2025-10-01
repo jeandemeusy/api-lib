@@ -39,6 +39,10 @@ def create_test_app():
     def always_succeed():
         return jsonify({"success": True}), 200
 
+    @app.route("/api/v1/always_succeed", methods=["GET"])
+    def api_v1_always_succeed():
+        return jsonify({"success": True}), 200
+
     @app.route("/randomly_succeed", methods=["GET"])
     def randomly_succeed():
         if random.random() < 0.75:
@@ -50,6 +54,10 @@ def create_test_app():
     def slow_endpoint():
         time.sleep(30)
         return jsonify({"success": True}), 200
+
+    @app.route("/query_returns_an_error", methods=["GET"])
+    def query_returns_an_error():
+        return jsonify({"error": "error from the api", "status": "DATA NOT FOUND"}), 404
 
     return app
 

@@ -1,8 +1,20 @@
 import asyncio
 import logging
-from typing import Any, Callable, Iterable, Optional, Tuple, Union, get_args, get_origin
+from typing import (
+    Any,
+    Callable,
+    Iterable,
+    Optional,
+    Self,
+    Tuple,
+    Union,
+    get_args,
+    get_origin,
+)
 
 import aiohttp
+
+from api_lib.objects.response import JsonResponse
 
 from .headers import Authorization, Header
 from .method import Method
@@ -42,6 +54,33 @@ class ApiLib:
         self.token = token
         self.prefix = prefix or ""
         self._headers = {k: v for h in (self.headers or []) for k, v in h.header.items()}
+        self.failure_fallback: Optional[JsonResponse] = None
+
+    def with_failure_fallback(self, fallback: Callable[..., JsonResponse]) -> Self:
+        """
+        Set a fallback response to use in case of request failures.
+
+        Args:
+            fallback (Callable[..., JsonResponse]): A callable that returns a JsonResponse instance.
+
+        Returns:
+            ApiLib: The updated ApiLib instance.
+        """
+        self.failure_fallback = fallback
+        return self
+
+    def with_api_prefix(self, prefix: str) -> Self:
+        """
+        Set a prefix for API endpoints.
+
+        Args:
+            prefix (str): The prefix to set.
+
+        Returns:
+            ApiLib: The updated ApiLib instance.
+        """
+        self.prefix = prefix
+        return self
 
     async def _call(
         self,
@@ -196,7 +235,10 @@ class ApiLib:
             return None
 
         if not status or status // 100 != 2:  # Not a 2xx response
-            return None
+            if self.failure_fallback and isinstance(r, dict):
+                return self.failure_fallback(r)
+            else:
+                return None
 
         if resp_type is None:
             return r
@@ -205,7 +247,7 @@ class ApiLib:
         args: Tuple[Optional[Any], ...] = get_args(resp_type)
 
         if origin and issubclass(origin, Iterable) and args:
-            return [args[0](item) for item in r]
+            return [args[0](item) for item in r]  # ty: ignore[invalid-return-type]
         else:
             return resp_type(r)  # ty: ignore[call-non-callable]
 

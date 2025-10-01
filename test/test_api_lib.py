@@ -4,9 +4,11 @@ from aiohttp import ClientConnectorError
 from api_lib.api_lib import ApiLib
 from api_lib.method import Method
 
+from .config.response import RequestFailure
+
 
 @pytest.mark.asyncio
-async def test_successfull_call(api: ApiLib):
+async def test_successful_call(api: ApiLib):
     status, resp = await api._call(Method.GET, "/always_succeed")
     assert status == 200
     assert isinstance(resp, dict)
@@ -89,9 +91,25 @@ async def test_status_failed_req(api: ApiLib):
 
 
 @pytest.mark.asyncio
+async def test_default_fallback(api: ApiLib):
+    result = await api.try_req(Method.GET, "/query_returns_an_error")
+
+    assert result is not None
+    assert isinstance(result, RequestFailure)
+    assert result.error != "default fallback"
+
+
+@pytest.mark.asyncio
 async def test_authenticated_call(api: ApiLib, api_not_authenticated: ApiLib):
     status, resp = await api._call(Method.GET, "/authenticated")
     assert status == 200
 
     status, resp = await api_not_authenticated._call(Method.GET, "/authenticated")
     assert status == 401
+
+
+@pytest.mark.asyncio
+async def test_call_with_prefix(api_with_prefix: ApiLib):
+    status, resp = await api_with_prefix._call(Method.GET, "/always_succeed")
+    assert status == 200
+    assert isinstance(resp, dict)
